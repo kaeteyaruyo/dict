@@ -42,9 +42,10 @@ int main(int argc, char **argv)
     FILE *fp = fopen(IN_FILE, "r");
 
     if (!fp) { /* prompt, open, validate file for reading */
-        fprintf(stderr, "error: file open failed '%s'.\n", argv[1]);
+        fprintf(stderr, "error: file open failed '%s'.\n", IN_FILE);
         return 1;
     }
+
     t1 = tvgetf();
 
     bloom_t bloom = bloom_create(TableSize);
@@ -64,12 +65,15 @@ int main(int argc, char **argv)
         Top += strlen(Top) + 1;
     }
     t2 = tvgetf();
+
     fclose(fp);
     printf("ternary_tree, loaded %d words in %.6f sec\n", idx, t2 - t1);
 
     if (argc == 2 && strcmp(argv[1], "--bench") == 0) {
         int stat = bench_test(root, BENCH_TEST_FILE, LMAX);
         tst_free(root);
+        bloom_free(bloom);
+        free(pool);
         return stat;
     }
 
@@ -118,7 +122,7 @@ int main(int argc, char **argv)
             if (res) {
                 idx++;
                 Top += (strlen(Top) + 1);
-                printf("  %s - inserted in %.10f sec. (%d words in tree)\n",
+                printf("  %s - inserted in %.12f sec. (%d words in tree)\n",
                        (char *) res, t2 - t1, idx);
             } else
                 printf("  %s - already exists in list.\n", (char *) res);
@@ -207,5 +211,6 @@ int main(int argc, char **argv)
 quit:
     tst_free(root);
     bloom_free(bloom);
+    free(pool);
     return 0;
 }

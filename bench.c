@@ -57,5 +57,6 @@ int bench_test(const tst_node *root, char *out_file, const int max)
 
     fclose(fp);
     fclose(dict);
+    free(sgl);
     return 0;
 }

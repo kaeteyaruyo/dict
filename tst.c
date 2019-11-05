@@ -238,6 +238,7 @@ void *tst_ins_del(tst_node **root, const char *s, const int del, const int cpy)
                     return tst_del_word(root, curr, &stk, cpy);
                 } else
                     curr->refcnt++; /* increment refcnt if word exists */
+                /* why don't this line into else block too? */
                 return (void *) curr->eqkid; /* pointer to word / NULL on del */
             }
             pcurr = &(curr->eqkid); /* get next eqkid pointer address */
@@ -271,7 +272,7 @@ void *tst_ins_del(tst_node **root, const char *s, const int del, const int cpy)
         if (!*root) /* handle assignment to root if no root */
             *root = *pcurr;
 
-        /* Place nodes until end of the string, at end of stign allocate
+        /* Place nodes until end of the string, at end of string allocate
          * space for data, copy data as final eqkid, and return.
          */
         if (*p++ == 0) {

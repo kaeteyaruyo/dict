@@ -28,18 +28,17 @@ OBJS_LIB = \
 
 OBJS := \
     $(OBJS_LIB) \
-    test_cpy.o \
-    test_ref.o
+    test_common.o
 
 deps := $(OBJS:%.o=.%.o.d)
 
-test_%: test_%.o $(OBJS_LIB)
+test_exe: test_common.o $(OBJS_LIB)
 	$(VECHO) "  LD\t$@\n"
-	$(Q)$(CC) $(LDFLAGS)  -o $@ $^ -lm
+	$(Q)$(CC) $(LDFLAGS)  -o test_$(shell echo $(MODE) | tr A-Z a-z) $^ -lm
 
 %.o: %.c
 	$(VECHO) "  CC\t$@\n"
-	$(Q)$(CC) -o $@ $(CFLAGS) -c -MMD -MF .$@.d $<
+	$(Q)$(CC) -D$(MODE) -o $@ $(CFLAGS) -c -MMD -MF .$@.d $<
 
 test:  $(TESTS)
 	echo 3 | sudo tee /proc/sys/vm/drop_caches;

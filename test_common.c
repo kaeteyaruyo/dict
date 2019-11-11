@@ -48,12 +48,9 @@ static void rmcrlf(char *s)
 
 int main(int argc, char **argv)
 {
-    char word[WRDMAX] = "";
-    char *sgl[LMAX] = {NULL};
-    tst_node *root = NULL, *res = NULL;
-    int rtn = 0, idx = 0, sidx = 0;
+    tst_node *root = NULL;
+    int idx = 0;
     double t1, t2;
-
     FILE *fp = fopen(IN_FILE, "r");
 
     if (!fp) { /* prompt, open, validate file for reading */
@@ -62,30 +59,52 @@ int main(int argc, char **argv)
     }
 
     t1 = tvgetf();
-
     bloom_t bloom = bloom_create(TableSize);
-
 #ifdef REF
     /* memory pool */
     char *pool = (char *) malloc(poolsize * sizeof(char));
-    char *buffer = pool;
+    char *Top = pool;
 #endif
-#ifdef CPY
-    char *buffer = word;
-#endif
-
-    while ((rtn = fscanf(fp, "%s", buffer)) != EOF) {
+    char line[WRDMAX];
+    while (fgets(line, WRDMAX, fp) != NULL) {
+        char city[WRDMAX] = "", province[WRDMAX] = "", nation[WRDMAX] = "";
+        sscanf(line, "%[^,^\n], %[^,^\n], %[^,^\n]", city, province, nation);
         /* insert reference to each string */
-        if (!tst_ins_del(&root, buffer, INS, MODE)) { /* fail to insert */
+        if (!tst_ins_del(&root, city, INS, MODE)) { /* fail to insert */
             fprintf(stderr, "error: memory exhausted, tst_insert.\n");
             fclose(fp);
             return 1;
         }
-        bloom_add(bloom, buffer);
+        bloom_add(bloom, city);
         idx++;
 #ifdef REF
-        buffer += strlen(buffer) + 1;
+        strcpy(Top, city);
+        Top += strlen(Top) + 1;
 #endif
+        if (!tst_ins_del(&root, province, INS, MODE)) { /* fail to insert */
+            fprintf(stderr, "error: memory exhausted, tst_insert.\n");
+            fclose(fp);
+            return 1;
+        }
+        bloom_add(bloom, province);
+        idx++;
+#ifdef REF
+        strcpy(Top, province);
+        Top += strlen(Top) + 1;
+#endif
+        if (strlen(nation)) {
+            if (!tst_ins_del(&root, nation, INS, MODE)) { /* fail to insert */
+                fprintf(stderr, "error: memory exhausted, tst_insert.\n");
+                fclose(fp);
+                return 1;
+            }
+            bloom_add(bloom, nation);
+            idx++;
+#ifdef REF
+            strcpy(Top, nation);
+            Top += strlen(Top) + 1;
+#endif
+        }
     }
     t2 = tvgetf();
 
@@ -96,7 +115,9 @@ int main(int argc, char **argv)
         int stat = bench_test(root, BENCH_TEST_FILE, LMAX);
         TST_FREE(root);
         bloom_free(bloom);
+#ifdef REF
         free(pool);
+#endif
         return stat;
     }
 
@@ -108,6 +129,15 @@ int main(int argc, char **argv)
     } else
         printf("open file error\n");
 
+    char word[WRDMAX] = "", *sgl[LMAX] = {NULL};
+    int sidx = 0;
+    tst_node *res = NULL;
+#ifdef REF
+    char *buffer = pool;
+#endif
+#ifdef CPY
+    char *buffer = word;
+#endif
     for (;;) {
         printf(
             "\nCommands:\n"
@@ -236,6 +266,8 @@ int main(int argc, char **argv)
 quit:
     TST_FREE(root);
     bloom_free(bloom);
+#ifdef REF
     free(pool);
+#endif
     return 0;
 }

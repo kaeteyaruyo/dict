@@ -32,6 +32,12 @@ OBJS := \
 
 deps := $(OBJS:%.o=.%.o.d)
 
+test_ref: FORCE
+	$(MAKE) test_exe MODE=REF
+
+test_cpy: FORCE
+	$(MAKE) test_exe MODE=CPY
+
 test_exe: test_common.o $(OBJS_LIB)
 	$(VECHO) "  LD\t$@\n"
 	$(Q)$(CC) $(LDFLAGS)  -o test_$(shell echo $(MODE) | tr A-Z a-z) $^ -lm
@@ -73,5 +79,7 @@ clean:
 	$(RM) $(deps)
 	$(RM) bench_cpy.txt bench_ref.txt ref.txt cpy.txt
 	$(RM) *.csv
+
+FORCE: ;
 
 -include $(deps)

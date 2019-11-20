@@ -1,4 +1,4 @@
-TESTS = test_cpy test_ref
+TESTS = test_ref test_cpy
 
 TEST_DATA = s Tai
 
@@ -33,9 +33,11 @@ OBJS := \
 deps := $(OBJS:%.o=.%.o.d)
 
 test_ref: FORCE
+	rm -f test_common.o
 	$(MAKE) test_exe MODE=REF
 
 test_cpy: FORCE
+	rm -f test_common.o
 	$(MAKE) test_exe MODE=CPY
 
 test_exe: test_common.o $(OBJS_LIB)
